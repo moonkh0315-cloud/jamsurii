@@ -7,14 +7,26 @@ function analyzeFatigue(
   activityLevel,
   isNightShift
 ) {
-  const baseScore = 100.0
+  const baseScore = 100
+
+  // =====================================================
+  // 1. 기본 피로도 계산
+  // =====================================================
 
   const hrvPenalty = Math.max(0, (50 - hrv) * 0.8)
-  const sleepPenalty = Math.max(0, 7.5 - sleepHours) * 8.5
-  const efficiencyPenalty = Math.max(0, (85 - sleepEfficiency) * 0.6)
-  const shiftPenalty = isNightShift ? 15.0 : 0.0
+
+  const sleepPenalty =
+    Math.max(0, 7.5 - sleepHours) * 8.5
+
+  const efficiencyPenalty =
+    Math.max(0, 85 - sleepEfficiency) * 0.6
+
+  const shiftPenalty = isNightShift ? 15 : 0
+
   const activityPenalty =
-    activityLevel > 15000 || activityLevel < 2000 ? 5.0 : 0.0
+    activityLevel > 15000 || activityLevel < 2000
+      ? 5
+      : 0
 
   const totalPenalty =
     hrvPenalty +
@@ -25,44 +37,270 @@ function analyzeFatigue(
 
   const fatigueScore = Math.max(
     0,
-    Math.min(100, Math.round((baseScore - totalPenalty) * 10) / 10)
+    Math.min(
+      100,
+      Math.round((baseScore - totalPenalty) * 10) / 10
+    )
   )
 
+  // =====================================================
+  // 2. 위험 등급
+  // =====================================================
+
+  let riskLevel
+  let riskText
+  let icon
+  let message
+  let actionGuide
+
   if (fatigueScore <= 40) {
-    return {
-      fatigueScore,
-      riskLevel: "CRITICAL",
-      riskText: "고위험",
-      icon: "🚨",
-      message:
-        "피로도가 위험 수준입니다. 순간 졸음으로 인한 사고 위험이 매우 높습니다.",
-      actionGuide:
-        "즉시 작업을 중단하고 15~20분간 파워 냅을 취하는 것을 권장합니다.",
-    }
+    riskLevel = "CRITICAL"
+    riskText = "고위험"
+    icon = "🚨"
+
+    message =
+      "현재 피로도가 매우 높은 상태입니다. 집중력과 반응 속도가 떨어질 수 있어 충분한 회복이 필요합니다."
+
+    actionGuide =
+      "가능하다면 작업을 잠시 중단하고 15~20분 정도 휴식을 취한 뒤 충분한 수면을 확보하세요."
+  } else if (fatigueScore <= 70) {
+    riskLevel = "WARNING"
+    riskText = "주의"
+    icon = "⚠️"
+
+    message =
+      "피로가 누적된 상태입니다. 평소보다 집중력이 떨어질 수 있으니 오늘은 회복을 우선하는 것이 좋습니다."
+
+    actionGuide =
+      "오늘은 무리한 활동을 줄이고 충분한 수면과 휴식을 확보하세요."
+  } else {
+    riskLevel = "NORMAL"
+    riskText = "양호"
+    icon = "✓"
+
+    message =
+      "현재 신체 회복 상태와 수면 상태가 비교적 안정적입니다."
+
+    actionGuide =
+      "현재의 수면 일정과 생활 패턴을 일정하게 유지해 주세요."
   }
 
-  if (fatigueScore <= 70) {
-    return {
-      fatigueScore,
-      riskLevel: "WARNING",
-      riskText: "주의",
-      icon: "⚠️",
-      message:
-        "생체 리듬 저하가 감지되었습니다. 작업 집중도가 떨어질 수 있습니다.",
-      actionGuide:
-        "퇴근 후 충분한 수면을 취하고 일정한 수면 패턴을 유지해 주세요.",
-    }
+  // =====================================================
+  // 3. 피로 원인 분석
+  // =====================================================
+
+  const causes = []
+
+  // -------------------------
+  // HRV
+  // -------------------------
+
+  if (hrv < 30) {
+    causes.push({
+      name: "회복 상태 저하",
+      icon: "❤️",
+      score: 25,
+      solution:
+        "몸의 회복 상태가 낮습니다. 오늘은 무리한 활동을 줄이고 충분한 휴식을 취하세요.",
+    })
+  } else if (hrv < 40) {
+    causes.push({
+      name: "회복 상태 주의",
+      icon: "❤️",
+      score: 15,
+      solution:
+        "평소보다 회복 상태가 낮을 수 있습니다. 오늘은 활동 강도를 조금 낮춰주세요.",
+    })
   }
+
+  // -------------------------
+  // 수면 시간
+  // -------------------------
+
+  if (sleepHours < 5) {
+    causes.push({
+      name: "심각한 수면 부족",
+      icon: "😴",
+      score: 30,
+      solution:
+        "수면 시간이 매우 부족합니다. 오늘은 가능한 한 충분한 수면 시간을 확보하세요.",
+    })
+  } else if (sleepHours < 6) {
+    causes.push({
+      name: "수면 부족",
+      icon: "😴",
+      score: 22,
+      solution:
+        "오늘은 평소보다 조금 일찍 잠자리에 들어 수면 시간을 확보하세요.",
+    })
+  } else if (sleepHours < 7) {
+    causes.push({
+      name: "수면 시간 부족",
+      icon: "😴",
+      score: 12,
+      solution:
+        "다음 수면에서는 최소 7시간 이상의 수면을 목표로 해보세요.",
+    })
+  }
+
+  // -------------------------
+  // 수면 효율
+  // -------------------------
+
+  if (sleepEfficiency < 70) {
+    causes.push({
+      name: "수면의 질 저하",
+      icon: "🌙",
+      score: 25,
+      solution:
+        "수면 환경을 어둡고 조용하게 만들고 취침 전 스마트폰 사용을 줄여보세요.",
+    })
+  } else if (sleepEfficiency < 85) {
+    causes.push({
+      name: "수면의 질 주의",
+      icon: "🌙",
+      score: 15,
+      solution:
+        "취침 시간을 일정하게 유지하고 취침 전 카페인과 과도한 활동을 피하세요.",
+    })
+  }
+
+  // -------------------------
+  // 활동량
+  // -------------------------
+
+  if (activityLevel > 15000) {
+    causes.push({
+      name: "높은 신체 활동량",
+      icon: "🏃",
+      score: 15,
+      solution:
+        "오늘 활동량이 많습니다. 수분을 충분히 섭취하고 가벼운 스트레칭으로 몸을 회복하세요.",
+    })
+  } else if (activityLevel < 2000) {
+    causes.push({
+      name: "낮은 활동량",
+      icon: "🚶",
+      score: 8,
+      solution:
+        "오랫동안 움직이지 않았다면 5~10분 정도 가볍게 걷거나 스트레칭을 해주세요.",
+    })
+  }
+
+  // -------------------------
+  // 야간근무
+  // -------------------------
+
+  if (isNightShift) {
+    causes.push({
+      name: "야간근무로 인한 생체리듬 부담",
+      icon: "🌃",
+      score: 20,
+      solution:
+        "근무 후에는 밝은 빛을 피하고 어둡고 조용한 환경에서 수면하세요.",
+    })
+  }
+
+  // =====================================================
+  // 4. 피로 원인 영향도 순서 정렬
+  // =====================================================
+
+  causes.sort((a, b) => b.score - a.score)
+
+  // =====================================================
+  // 5. 주요 원인
+  // =====================================================
+
+  const mainCause =
+    causes.length > 0
+      ? causes[0]
+      : {
+          name: "특별한 피로 원인이 감지되지 않았습니다.",
+          icon: "✨",
+          score: 0,
+          solution:
+            "현재 생활 패턴을 유지하고 규칙적인 수면을 이어가세요.",
+        }
+
+  // =====================================================
+  // 6. 맞춤 솔루션
+  // =====================================================
+
+  const solutions = causes
+    .slice(0, 2)
+    .map((cause) => cause.solution)
+
+  if (solutions.length === 0) {
+    solutions.push(
+      "현재 생활 패턴을 유지하세요.",
+      "규칙적인 수면 시간을 유지하세요.",
+      "수분 섭취와 가벼운 활동을 꾸준히 해주세요."
+    )
+  } else {
+    solutions.push(
+      "오늘은 무리한 활동보다 회복을 우선하세요."
+    )
+  }
+
+  // =====================================================
+  // 7. 오늘의 행동 가이드
+  // =====================================================
+
+  const actions = []
+
+  if (fatigueScore <= 40) {
+    actions.push(
+      "가능하다면 현재 작업을 잠시 중단하고 휴식을 취하세요.",
+      "15~20분 정도의 짧은 휴식을 고려하세요."
+    )
+  } else if (fatigueScore <= 70) {
+    actions.push(
+      "오늘은 무리한 활동보다 회복을 우선하세요.",
+      "충분한 수분을 섭취하세요."
+    )
+  } else {
+    actions.push(
+      "현재 컨디션을 유지하면서 일정을 진행하세요."
+    )
+  }
+
+  if (sleepHours < 6) {
+    actions.push(
+      "오늘 수면 시간을 평소보다 충분히 확보하세요."
+    )
+  }
+
+  if (sleepEfficiency < 75) {
+    actions.push(
+      "취침 전 스마트폰 사용과 강한 빛을 줄여주세요."
+    )
+  }
+
+  if (isNightShift) {
+    actions.push(
+      "야간근무 후에는 밝은 빛을 피하고 어둡고 조용한 환경에서 수면하세요."
+    )
+  }
+
+  actions.push(
+    "가능한 한 일정한 시간에 잠들고 일어나세요."
+  )
+
+  // =====================================================
+  // 최종 결과
+  // =====================================================
 
   return {
     fatigueScore,
-    riskLevel: "NORMAL",
-    riskText: "양호",
-    icon: "✓",
-    message:
-      "현재 신체 회복 상태와 수면 질이 안정적인 상태입니다.",
-    actionGuide:
-      "현재의 수면 일정과 생활 패턴을 일정하게 유지해 주세요.",
+    riskLevel,
+    riskText,
+    icon,
+    message,
+    actionGuide,
+    mainCause,
+    causes,
+    solutions,
+    actions,
   }
 }
 
@@ -76,8 +314,17 @@ export default function FatigueTest() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  // =====================================================
+  // 분석 실행
+  // =====================================================
+
   const handleAnalyze = () => {
-    if (!hrv || !sleepHours || !sleepEfficiency || !activityLevel) {
+    if (
+      !hrv ||
+      !sleepHours ||
+      !sleepEfficiency ||
+      !activityLevel
+    ) {
       alert("모든 항목을 입력해주세요.")
       return
     }
@@ -98,6 +345,10 @@ export default function FatigueTest() {
     }, 1000)
   }
 
+  // =====================================================
+  // 점수 색상
+  // =====================================================
+
   const getScoreStyle = () => {
     if (!result) return ""
 
@@ -113,16 +364,22 @@ export default function FatigueTest() {
   }
 
   return (
-    <section 
-     id="fatigue-test"
-     className="scroll-mt-20 relative overflow-hidden bg-slate-950 px-6 py-24 text-white">
+    <section
+      id="fatigue-test"
+      className="scroll-mt-20 relative overflow-hidden bg-slate-950 px-6 py-24 text-white"
+    >
+
       {/* 배경 효과 */}
       <div className="pointer-events-none absolute left-1/2 top-20 h-96 w-96 -translate-x-1/2 rounded-full bg-violet-600/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-5xl">
 
-        {/* 제목 */}
+        {/* =================================================
+            제목
+        ================================================= */}
+
         <div className="mb-12 text-center">
+
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-300">
             <span className="h-2 w-2 rounded-full bg-violet-400" />
             잠수리 AI 피로도 분석
@@ -136,17 +393,24 @@ export default function FatigueTest() {
           </h2>
 
           <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-400 md:text-base">
-            수면 및 생체 데이터를 기반으로 <br /> 현재 피로 상태를
-            분석하고 적절한 휴식 가이드를 제공합니다.
+            수면 및 생체 데이터를 기반으로
+            <br />
+            현재 피로 상태를 분석하고
+            나에게 맞는 회복 솔루션을 제공합니다.
           </p>
+
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
 
-          {/* ================= 입력 카드 ================= */}
+          {/* =================================================
+              입력 카드
+          ================================================= */}
+
           <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-violet-950/20 backdrop-blur-xl md:p-8">
 
             <div className="mb-7">
+
               <p className="text-lg font-semibold">
                 생체 데이터 입력
               </p>
@@ -154,13 +418,17 @@ export default function FatigueTest() {
               <p className="mt-1 text-sm text-slate-500">
                 현재 상태에 가까운 값을 입력해주세요.
               </p>
+
             </div>
 
             <div className="space-y-5">
 
               {/* HRV */}
+
               <div>
+
                 <label className="mb-2 flex items-center justify-between text-sm">
+
                   <span className="text-slate-300">
                     HRV
                   </span>
@@ -168,20 +436,27 @@ export default function FatigueTest() {
                   <span className="text-xs text-slate-500">
                     ms
                   </span>
+
                 </label>
 
                 <input
                   type="number"
                   value={hrv}
-                  onChange={(e) => setHrv(e.target.value)}
+                  onChange={(e) =>
+                    setHrv(e.target.value)
+                  }
                   placeholder="예: 50"
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400/60 focus:bg-white/[0.06]"
                 />
+
               </div>
 
               {/* 수면시간 */}
+
               <div>
+
                 <label className="mb-2 flex items-center justify-between text-sm">
+
                   <span className="text-slate-300">
                     수면 시간
                   </span>
@@ -189,21 +464,28 @@ export default function FatigueTest() {
                   <span className="text-xs text-slate-500">
                     hours
                   </span>
+
                 </label>
 
                 <input
                   type="number"
                   step="0.1"
                   value={sleepHours}
-                  onChange={(e) => setSleepHours(e.target.value)}
+                  onChange={(e) =>
+                    setSleepHours(e.target.value)
+                  }
                   placeholder="예: 6.5"
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400/60 focus:bg-white/[0.06]"
                 />
+
               </div>
 
               {/* 수면효율 */}
+
               <div>
+
                 <label className="mb-2 flex items-center justify-between text-sm">
+
                   <span className="text-slate-300">
                     수면 효율
                   </span>
@@ -211,6 +493,7 @@ export default function FatigueTest() {
                   <span className="text-xs text-slate-500">
                     %
                   </span>
+
                 </label>
 
                 <input
@@ -222,11 +505,15 @@ export default function FatigueTest() {
                   placeholder="예: 85"
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400/60 focus:bg-white/[0.06]"
                 />
+
               </div>
 
               {/* 활동량 */}
+
               <div>
+
                 <label className="mb-2 flex items-center justify-between text-sm">
+
                   <span className="text-slate-300">
                     오늘 걸음 수
                   </span>
@@ -234,6 +521,7 @@ export default function FatigueTest() {
                   <span className="text-xs text-slate-500">
                     steps
                   </span>
+
                 </label>
 
                 <input
@@ -245,19 +533,25 @@ export default function FatigueTest() {
                   placeholder="예: 5000"
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400/60 focus:bg-white/[0.06]"
                 />
+
               </div>
 
               {/* 야간근무 */}
+
               <button
                 type="button"
-                onClick={() => setIsNightShift(!isNightShift)}
+                onClick={() =>
+                  setIsNightShift(!isNightShift)
+                }
                 className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${
                   isNightShift
                     ? "border-violet-400/40 bg-violet-500/10"
                     : "border-white/10 bg-black/20 hover:bg-white/[0.04]"
                 }`}
               >
+
                 <div>
+
                   <p className="text-sm font-medium">
                     야간 근무 중인가요?
                   </p>
@@ -265,6 +559,7 @@ export default function FatigueTest() {
                   <p className="mt-1 text-xs text-slate-500">
                     교대근무 여부를 분석에 반영합니다.
                   </p>
+
                 </div>
 
                 <div
@@ -274,6 +569,7 @@ export default function FatigueTest() {
                       : "bg-slate-700"
                   }`}
                 >
+
                   <div
                     className={`h-4 w-4 rounded-full bg-white transition ${
                       isNightShift
@@ -281,35 +577,52 @@ export default function FatigueTest() {
                         : "translate-x-0"
                     }`}
                   />
+
                 </div>
+
               </button>
 
               {/* 분석 버튼 */}
+
               <button
                 onClick={handleAnalyze}
                 disabled={loading}
                 className="group relative mt-2 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 py-4 font-semibold shadow-lg shadow-violet-900/20 transition hover:scale-[1.01] hover:from-violet-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
               >
+
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
+
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+
                     데이터를 분석하고 있어요...
+
                   </span>
                 ) : (
                   "AI 피로도 분석하기"
                 )}
+
               </button>
+
             </div>
           </div>
 
-          {/* ================= 결과 카드 ================= */}
+          {/* =================================================
+              결과 카드
+          ================================================= */}
+
           <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-violet-950/20 backdrop-blur-xl md:p-8">
 
             {!result ? (
+
               <div className="flex h-full min-h-[500px] flex-col items-center justify-center text-center">
 
                 <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-400/20 bg-violet-500/10">
-                  <span className="text-3xl">◌</span>
+
+                  <span className="text-3xl">
+                    ◌
+                  </span>
+
                 </div>
 
                 <p className="text-lg font-semibold">
@@ -323,11 +636,17 @@ export default function FatigueTest() {
                 </p>
 
               </div>
+
             ) : (
+
               <div>
 
+                {/* 결과 제목 */}
+
                 <div className="mb-8 flex items-center justify-between">
+
                   <div>
+
                     <p className="text-sm text-slate-400">
                       AI 분석 결과
                     </p>
@@ -335,14 +654,19 @@ export default function FatigueTest() {
                     <p className="mt-1 text-lg font-semibold">
                       오늘의 피로도
                     </p>
+
                   </div>
 
                   <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400">
                     Prototype
                   </div>
+
                 </div>
 
-                {/* 점수 */}
+                {/* =================================================
+                    점수
+                ================================================= */}
+
                 <div className="flex flex-col items-center">
 
                   <div className="relative flex h-52 w-52 items-center justify-center rounded-full border-[14px] border-white/5">
@@ -352,6 +676,7 @@ export default function FatigueTest() {
                     />
 
                     <div className="text-center">
+
                       <p className="text-5xl font-bold tracking-tight">
                         {result.fatigueScore}
                       </p>
@@ -359,10 +684,13 @@ export default function FatigueTest() {
                       <p className="mt-1 text-sm text-slate-500">
                         / 100
                       </p>
+
                     </div>
+
                   </div>
 
                   {/* 상태 */}
+
                   <div className="mt-7 text-center">
 
                     <div className="mb-2 text-3xl">
@@ -378,12 +706,17 @@ export default function FatigueTest() {
                     </p>
 
                   </div>
+
                 </div>
 
-                {/* 메시지 */}
-                <div className="mt-8 space-y-3">
+                {/* =================================================
+                    현재 상태
+                ================================================= */}
+
+                <div className="mt-8">
 
                   <div className="rounded-2xl border border-white/5 bg-black/20 p-4">
+
                     <p className="mb-2 text-xs font-medium text-violet-300">
                       ANALYSIS
                     </p>
@@ -391,27 +724,166 @@ export default function FatigueTest() {
                     <p className="text-sm leading-6 text-slate-300">
                       {result.message}
                     </p>
+
                   </div>
 
-                  <div className="rounded-2xl border border-white/5 bg-black/20 p-4">
-                    <p className="mb-2 text-xs font-medium text-violet-300">
-                      SLEEP GUIDE
+                </div>
+
+                {/* =================================================
+                    주요 피로 원인
+                ================================================= */}
+
+                <div className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4">
+
+                  <div className="mb-4">
+
+                    <p className="text-xs font-medium text-violet-300">
+                      MAIN CAUSE
                     </p>
 
-                    <p className="text-sm leading-6 text-slate-300">
-                      {result.actionGuide}
+                    <p className="mt-1 text-base font-semibold">
+                      {result.mainCause.icon}{" "}
+                      {result.mainCause.name}
                     </p>
+
                   </div>
+
+                  <div className="space-y-2">
+
+                    {result.causes
+                      .slice(0, 3)
+                      .map((cause, index) => (
+                        <div
+                          key={cause.name}
+                          className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-3"
+                        >
+
+                          <div className="flex items-center gap-2">
+
+                            <span className="text-sm">
+                              {cause.icon}
+                            </span>
+
+                            <span className="text-sm text-slate-300">
+                              {cause.name}
+                            </span>
+
+                          </div>
+
+                          <span className="text-xs text-slate-500">
+                            영향도 {cause.score}
+                          </span>
+
+                        </div>
+                      ))}
+
+                  </div>
+
+                </div>
+
+                {/* =================================================
+                    맞춤 솔루션
+                ================================================= */}
+
+                <div className="mt-4 rounded-2xl border border-violet-400/10 bg-violet-500/[0.05] p-4">
+
+                  <p className="text-xs font-medium text-violet-300">
+                    PERSONALIZED SOLUTION
+                  </p>
+
+                  <p className="mt-1 text-base font-semibold">
+                    💡 잠수리 맞춤 솔루션
+                  </p>
+
+                  <div className="mt-4 space-y-3">
+
+                    {result.solutions.map(
+                      (solution, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-3"
+                        >
+
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xs text-violet-300">
+                            {index + 1}
+                          </div>
+
+                          <p className="text-sm leading-6 text-slate-300">
+                            {solution}
+                          </p>
+
+                        </div>
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+                {/* =================================================
+                    오늘의 행동
+                ================================================= */}
+
+                <div className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4">
+
+                  <p className="text-xs font-medium text-violet-300">
+                    TODAY'S GUIDE
+                  </p>
+
+                  <p className="mt-1 text-base font-semibold">
+                    📋 오늘 이렇게 해보세요
+                  </p>
+
+                  <div className="mt-4 space-y-3">
+
+                    {result.actions.map(
+                      (action, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-3"
+                        >
+
+                          <span className="mt-1 text-violet-300">
+                            ✓
+                          </span>
+
+                          <p className="text-sm leading-6 text-slate-300">
+                            {action}
+                          </p>
+
+                        </div>
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+                {/* =================================================
+                    기존 행동 가이드
+                ================================================= */}
+
+                <div className="mt-4 rounded-2xl border border-white/5 bg-black/20 p-4">
+
+                  <p className="mb-2 text-xs font-medium text-violet-300">
+                    SLEEP GUIDE
+                  </p>
+
+                  <p className="text-sm leading-6 text-slate-300">
+                    {result.actionGuide}
+                  </p>
 
                 </div>
 
               </div>
             )}
+
           </div>
 
         </div>
 
         {/* 안내 */}
+
         <p className="mt-6 text-center text-xs text-slate-600">
           ※ 본 결과는 잠수리 서비스의 피로도 분석 프로토타입이며,
           의료적 진단을 목적으로 하지 않습니다.
