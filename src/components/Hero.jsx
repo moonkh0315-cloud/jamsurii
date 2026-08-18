@@ -15,11 +15,10 @@ function Hero() {
 
       {/* =========================
           초승달
-          → 깜빡이지 않고 은은하게 고정
       ========================= */}
 
       <svg
-        className="absolute top-16 right-5 w-40 h-40 opacity-30 z-0"
+        className="absolute top-16 right-10 w-40 h-40 opacity-30 z-0"
         viewBox="0 0 100 100"
       >
         <path
@@ -35,35 +34,24 @@ function Hero() {
 
       {/* =========================
           별
-          → 화면 전체에 자연스럽게 배치
-          → 모두 같은 효과
       ========================= */}
 
-      {/* 왼쪽 위 */}
       <div className="absolute top-28 left-[10%] w-2 h-2 rounded-full bg-white opacity-70 animate-pulse z-0" />
 
-      {/* 왼쪽 중앙 */}
       <div className="absolute top-[45%] left-[20%] w-1.5 h-1.5 rounded-full bg-white opacity-60 animate-pulse z-0" />
 
-      {/* 중앙 위 */}
       <div className="absolute top-[27%] left-[42%] w-2 h-2 rounded-full bg-white opacity-70 animate-pulse z-0" />
 
-      {/* ★ 중앙 */}
       <div className="absolute top-[40%] left-[50%] w-2 h-2 rounded-full bg-white opacity-70 animate-pulse z-0" />
 
-      {/* 중앙 아래 */}
       <div className="absolute bottom-[28%] left-[45%] w-1.5 h-1.5 rounded-full bg-white opacity-60 animate-pulse z-0" />
 
-      {/* 오른쪽 중앙 */}
       <div className="absolute top-[55%] right-[24%] w-2 h-2 rounded-full bg-white opacity-70 animate-pulse z-0" />
 
-      {/* 오른쪽 위 */}
       <div className="absolute top-[24%] right-[32%] w-1.5 h-1.5 rounded-full bg-white opacity-60 animate-pulse z-0" />
 
-      {/* 오른쪽 아래 */}
       <div className="absolute bottom-[22%] right-[10%] w-2 h-2 rounded-full bg-white opacity-60 animate-pulse z-0" />
 
-      {/* 작은 별 */}
       <div className="absolute top-[35%] left-[33%] w-1 h-1 rounded-full bg-white opacity-50 animate-pulse z-0" />
 
       <div className="absolute bottom-[35%] left-[30%] w-1 h-1 rounded-full bg-white opacity-50 animate-pulse z-0" />
@@ -118,9 +106,13 @@ function Hero() {
             </p>
 
 
-            {/* 버튼 */}
+            {/* =========================
+                버튼
+            ========================= */}
 
-            <div className="mt-12 flex gap-5">
+            <div className="mt-12 flex flex-wrap gap-4">
+
+              {/* 수면 MBTI */}
 
               <a
                 href="https://sleepmbti.vercel.app"
@@ -142,6 +134,8 @@ function Hero() {
               </a>
 
 
+              {/* 앱 소개 */}
+
               <a
                 href="#feature"
                 className="
@@ -157,6 +151,32 @@ function Hero() {
               >
                 앱 소개
               </a>
+
+
+              {/* 피로도 측정 */}
+
+              <button
+                onClick={() => {
+                  document
+                    .getElementById("fatigue-test")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }}
+                className="
+                  border
+                  border-violet-500/50
+                  bg-violet-500/10
+                  text-violet-300
+                  hover:bg-violet-500/20
+                  hover:border-violet-400
+                  duration-300
+                  px-8
+                  py-4
+                  rounded-full
+                  font-semibold
+                "
+              >
+                ✦ 피로도 측정 프로토타입
+              </button>
 
             </div>
 
@@ -335,7 +355,7 @@ function Hero() {
       </div>
 
     </section>
-  );
+  )
 }
 
-export default Hero;
+export default Hero
