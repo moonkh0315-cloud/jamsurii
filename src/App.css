@@ -1,0 +1,374 @@
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:#0F172A;
+  color:white;
+}
+
+.app{
+  width:100%;
+}
+
+/* 네비게이션 */
+
+.navbar{
+  position:fixed;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 70px;
+  background:rgba(15,23,42,.8);
+  backdrop-filter:blur(10px);
+}
+
+.navbar h2{
+  color:#8B5CF6;
+}
+
+.navbar ul{
+  display:flex;
+  gap:30px;
+  list-style:none;
+}
+
+.navbar a{
+  color:white;
+  text-decoration:none;
+}
+
+.navbar a:hover{
+  color:#8B5CF6;
+}
+
+/* 메인 */
+
+.hero{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  padding:120px;
+
+  min-height:100vh;
+
+  background:
+  linear-gradient(135deg,#312E81,#1E3A8A,#0F172A);
+
+}
+
+.left{
+
+width:50%;
+
+}
+
+.left h1{
+
+font-size:80px;
+
+margin-top:20px;
+
+}
+
+.left h2{
+
+font-size:35px;
+
+margin:20px 0;
+
+}
+
+.left p{
+
+font-size:20px;
+
+line-height:2;
+
+color:#CBD5E1;
+
+margin-bottom:40px;
+
+}
+
+.right{
+
+width:50%;
+
+display:flex;
+
+justify-content:center;
+
+}
+
+.phone{
+
+width:320px;
+
+animation:float 3s ease-in-out infinite;
+
+}
+
+.logo{
+
+width:100px;
+
+}
+
+.hero h1{
+
+  font-size:70px;
+
+}
+
+.hero h2{
+
+  margin-top:20px;
+
+  font-size:35px;
+
+}
+
+.hero p{
+
+  margin-top:20px;
+
+  width:650px;
+
+  max-width:90%;
+
+  line-height:1.8;
+
+  color:#d1d5db;
+
+}
+
+/* 버튼 */
+
+.button{
+
+margin-top:40px;
+
+display:inline-block;
+
+padding:18px 45px;
+
+background:#8B5CF6;
+
+border-radius:50px;
+
+text-decoration:none;
+
+color:white;
+
+font-size:20px;
+
+transition:.3s;
+
+}
+
+.button:hover{
+
+background:#7C3AED;
+
+transform:scale(1.05);
+
+}
+
+/* 소개 */
+
+.about{
+
+padding:120px 80px;
+
+text-align:center;
+
+}
+
+.about h2{
+
+font-size:40px;
+
+margin-bottom:30px;
+
+}
+
+.about p{
+
+width:800px;
+
+max-width:90%;
+
+margin:auto;
+
+line-height:2;
+
+font-size:20px;
+
+color:#CBD5E1;
+
+}
+
+/* 기능 */
+
+.feature{
+
+padding:120px 60px;
+
+text-align:center;
+
+}
+
+.feature h2{
+
+font-size:40px;
+
+margin-bottom:60px;
+
+}
+
+.cards{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:30px;
+
+}
+
+.card{
+
+background:#1E293B;
+
+padding:40px;
+
+border-radius:20px;
+
+font-size:20px;
+
+transition:.4s;
+
+}
+
+.card:hover{
+
+transform:translateY(-10px);
+
+background:#312E81;
+
+}
+
+.card h3{
+
+margin:20px 0;
+
+}
+
+/* MBTI */
+
+.mbti{
+
+padding:120px;
+
+text-align:center;
+
+background:#1E293B;
+
+}
+
+.mbti h2{
+
+font-size:45px;
+
+margin-bottom:25px;
+
+}
+
+.mbti p{
+
+font-size:20px;
+
+color:#CBD5E1;
+
+margin-bottom:40px;
+
+}
+
+/* Footer */
+
+footer{
+
+padding:40px;
+
+text-align:center;
+
+background:black;
+
+color:#aaa;
+
+}
+
+/* 모바일 */
+
+@media(max-width:900px){
+
+.cards{
+
+grid-template-columns:1fr;
+
+}
+
+.navbar{
+
+padding:20px;
+
+}
+
+.navbar ul{
+
+display:none;
+
+}
+
+.hero h1{
+
+font-size:45px;
+
+}
+
+.hero h2{
+
+font-size:25px;
+
+}
+
+}
+
+@keyframes float{
+
+0%{
+
+transform:translateY(0px);
+
+}
+
+50%{
+
+transform:translateY(-15px);
+
+}
+
+100%{
+
+transform:translateY(0px);}
+}
